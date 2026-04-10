@@ -1,0 +1,1247 @@
+<!-- ===== dashboard.html ===== -->
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard Admin - iMersEstate</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#FF6B6B',
+            'primary-soft': '#FF8E8E',
+            'primary-light': '#FFD6D6',
+            bg: '#F8FAFC',
+            txt: '#1F2937'
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --color-primary: #FF6B6B;
+      --color-grad1: #FF6B6B;
+      --color-grad2: #FF8E8E;
+      --color-grad3: #FFD6D6;
+    }
+    .bg-gradient-custom { background-image: linear-gradient(to right, var(--color-grad1), var(--color-grad2), var(--color-grad3)) !important; }
+    .text-primary-custom { color: var(--color-primary) !important; }
+    .bg-primary-custom { background-color: var(--color-primary) !important; }
+    
+    .hide-scroll::-webkit-scrollbar { display: none; }
+    .loader { border: 4px solid #f3f3f3; border-top: 4px solid var(--color-primary); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
+    .dark .loader { border: 4px solid #374151; border-top: 4px solid var(--color-primary); }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
+
+  <!-- VARIABLE SERVER (Aman dari bentrok kutip) -->
+  <script>
+    const SERVER_APP_URL = "<?= typeof appUrl !== 'undefined' ? appUrl : '' ?>";
+  </script>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-sans antialiased h-screen flex flex-col overflow-hidden transition-colors relative">
+
+  <!-- ANTI-BLANK SHIELD -->
+  <div id="fatal-error-shield" class="hidden absolute inset-0 z-[9999] bg-white p-10 flex flex-col items-center justify-center text-center">
+    <i class="fa-solid fa-triangle-exclamation text-6xl text-red-500 mb-4"></i>
+    <h2 class="text-2xl font-bold text-gray-900 mb-2">Sistem Gagal Memuat (Crash)</h2>
+    <p class="text-gray-600 mb-4">Detail Error:</p>
+    <code id="fatal-error-msg" class="bg-red-50 text-red-600 p-4 rounded-lg w-full max-w-2xl text-sm border border-red-200 text-left overflow-auto"></code>
+  </div>
+
+  <script>
+    window.onerror = function(msg, url, lineNo, columnNo, error) {
+      var shield = document.getElementById('fatal-error-shield');
+      var msgBox = document.getElementById('fatal-error-msg');
+      if(shield && msgBox) {
+        shield.classList.remove('hidden');
+        msgBox.innerHTML = "<b>Pesan:</b> " + msg + "<br><b>Baris:</b> " + lineNo + "<br><b>Kolom:</b> " + columnNo;
+      }
+      return false;
+    };
+  </script>
+
+  <!-- LOADING GLOBAL -->
+  <div id="global-loader" class="fixed inset-0 z-[999] bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm flex items-center justify-center hidden transition-opacity">
+    <div class="flex flex-col items-center">
+      <div class="loader mb-3"></div>
+      <span class="text-primary-custom font-bold">Memproses Data...</span>
+    </div>
+  </div>
+
+  <!-- OVERLAY LOGIN -->
+  <div id="loginOverlay" class="fixed inset-0 z-[100] bg-gray-100 dark:bg-gray-900 flex items-center justify-center transition-colors">
+    <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl max-w-sm w-full border border-gray-200 dark:border-gray-700">
+      <div class="text-center mb-6">
+        <i class="fa-solid fa-house-chimney text-4xl text-primary-custom mb-3"></i>
+        <h2 class="text-2xl font-extrabold text-gray-900 dark:text-white">Admin Portal</h2>
+        <p class="text-gray-500 text-sm mt-1">Gunakan username: admin / agency / agent</p>
+      </div>
+      <form onsubmit="window.submitLogin(event)">
+        <div class="mb-4">
+          <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Username</label>
+          <input type="text" id="loginUser" placeholder="admin" class="w-full border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-custom" required>
+        </div>
+        <div class="mb-6">
+          <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Password</label>
+          <input type="password" id="loginPass" placeholder="admin123" class="w-full border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-custom" required>
+        </div>
+        <button type="submit" class="w-full bg-gradient-custom text-white p-3 rounded-xl font-bold hover:shadow-lg transition transform hover:-translate-y-0.5">Masuk Dashboard</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- APLIKASI DASHBOARD UTAMA -->
+  <div id="app" class="flex-grow flex flex-col h-full hidden">
+    <!-- Navbar Admin -->
+    <nav class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 flex-shrink-0 z-20">
+      <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+          <div class="flex items-center">
+            <div class="w-8 h-8 bg-primary-custom text-white flex items-center justify-center rounded-lg mr-3">
+              <i class="fa-solid fa-house-chimney"></i>
+            </div>
+            <span class="font-bold text-xl tracking-tight text-gray-900 dark:text-white">iMers<span class="font-light">Admin</span></span>
+            <span id="badge-role" class="ml-4 px-2 py-0.5 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 text-xs rounded-full font-bold uppercase hidden">Role</span>
+          </div>
+          <div class="flex items-center space-x-4">
+            <button onclick="window.toggleTheme()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-500 dark:text-gray-300" title="Toggle Dark Mode">
+              <i id="theme-icon" class="fa-solid fa-moon text-lg"></i>
+            </button>
+            <a id="btn-view-site" href="#" target="_blank" class="px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition text-sm font-bold text-gray-700 dark:text-gray-200">
+              <i class="fa-solid fa-arrow-up-right-from-square mr-1"></i> Buka Web
+            </a>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="flex-grow flex overflow-hidden">
+      <!-- Sidebar Menu -->
+      <div class="w-64 bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 hidden md:flex flex-col z-10 relative">
+        <div class="p-5 border-b border-gray-100 dark:border-gray-700">
+          <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Menu Navigasi</h2>
+        </div>
+        <nav class="flex-1 p-4 flex flex-col gap-2 overflow-y-auto hide-scroll">
+          <button onclick="window.switchTab('properties')" id="tab-properties" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-primary-custom bg-red-50 dark:bg-red-900/20 font-bold transition">
+            <i class="fa-solid fa-building w-5 text-center"></i> Data Properti
+          </button>
+          <button onclick="window.switchTab('articles')" id="tab-articles" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition">
+            <i class="fa-solid fa-newspaper w-5 text-center"></i> Artikel Blog
+          </button>
+          
+          <div id="nav-group-leads">
+            <button onclick="window.switchTab('leads')" id="tab-leads" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition">
+              <i class="fa-solid fa-envelope w-5 text-center"></i> Pesan Masuk
+            </button>
+            <button onclick="window.switchTab('surveys')" id="tab-surveys" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition">
+              <i class="fa-solid fa-calendar-check w-5 text-center"></i> Jadwal Survei
+            </button>
+          </div>
+
+          <div id="nav-group-admin">
+            <hr class="my-2 border-gray-100 dark:border-gray-700">
+            <button onclick="window.switchTab('users')" id="tab-users" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition">
+              <i class="fa-solid fa-users w-5 text-center"></i> Manajemen User
+            </button>
+            <button onclick="window.switchTab('settings')" id="tab-settings" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition">
+              <i class="fa-solid fa-gear w-5 text-center"></i> Pengaturan Web
+            </button>
+          </div>
+          
+          <hr class="my-2 border-gray-100 dark:border-gray-700">
+          <button onclick="window.switchTab('password')" id="tab-password" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition">
+            <i class="fa-solid fa-key w-5 text-center"></i> Ganti Password
+          </button>
+
+          <!-- Spacer -->
+          <div class="flex-grow"></div>
+          <button onclick="window.doLogout()" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 transition font-bold border border-transparent hover:border-red-100 dark:hover:border-red-800">
+            <i class="fa-solid fa-sign-out-alt w-5 text-center"></i> Logout
+          </button>
+        </nav>
+      </div>
+
+      <!-- Area Konten Utama -->
+      <main class="flex-1 overflow-y-auto p-6 md:p-8 bg-gray-50 dark:bg-gray-900 transition-colors">
+        
+        <!-- Tab: Properties -->
+        <div id="view-properties" class="tab-content">
+          <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-extrabold text-gray-900 dark:text-white">Kelola Properti</h1>
+            <button onclick="window.openFormModal('property')" class="bg-gradient-custom hover:opacity-90 text-white px-5 py-2.5 rounded-xl font-bold shadow-md transition flex items-center transform hover:-translate-y-0.5">
+              <i class="fa-solid fa-plus mr-2"></i> Tambah Properti
+            </button>
+          </div>
+          <div class="bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-xs uppercase tracking-widest border-b border-gray-100 dark:border-gray-700">
+                    <th class="p-5 font-bold">Properti</th>
+                    <th class="p-5 font-bold">Tipe</th>
+                    <th class="p-5 font-bold">Harga/DP</th>
+                    <th class="p-5 font-bold text-center">Highlight</th>
+                    <th class="p-5 font-bold text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="properties-tbody" class="divide-y divide-gray-100 dark:divide-gray-700 text-sm">
+                  <tr><td colspan="5" class="p-10 text-center text-gray-400 font-medium">Memuat data properti...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Articles -->
+        <div id="view-articles" class="tab-content hidden">
+          <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-extrabold text-gray-900 dark:text-white">Kelola Artikel Blog</h1>
+            <button onclick="window.openFormModal('article')" class="bg-teal-500 hover:bg-teal-600 text-white px-5 py-2.5 rounded-xl font-bold shadow-md transition flex items-center transform hover:-translate-y-0.5">
+              <i class="fa-solid fa-plus mr-2"></i> Tambah Artikel
+            </button>
+          </div>
+          <div class="bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-xs uppercase tracking-widest border-b border-gray-100 dark:border-gray-700">
+                    <th class="p-5 font-bold">Tanggal</th>
+                    <th class="p-5 font-bold">Kategori</th>
+                    <th class="p-5 font-bold">Judul Artikel</th>
+                    <th class="p-5 font-bold text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="articles-tbody" class="divide-y divide-gray-100 dark:divide-gray-700 text-sm"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Leads -->
+        <div id="view-leads" class="tab-content hidden">
+          <h1 class="text-3xl font-extrabold mb-6 dark:text-white text-gray-900">Pesan Masuk (Leads)</h1>
+          <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead><tr class="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-xs uppercase border-b dark:border-gray-700"><th class="p-5">Tanggal</th><th class="p-5">Nama</th><th class="p-5">No. WA</th><th class="p-5">Pesan</th><th class="p-5">ID Properti</th></tr></thead>
+              <tbody id="leads-tbody" class="divide-y divide-gray-100 dark:divide-gray-700 text-sm"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab: Surveys -->
+        <div id="view-surveys" class="tab-content hidden">
+          <h1 class="text-3xl font-extrabold mb-6 dark:text-white text-gray-900">Jadwal Pengajuan Survei</h1>
+          <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead><tr class="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-xs uppercase border-b dark:border-gray-700"><th class="p-5">Tgl Kunjungan</th><th class="p-5">Nama</th><th class="p-5">No. WA</th><th class="p-5">ID Properti</th><th class="p-5">Waktu Submit</th></tr></thead>
+              <tbody id="surveys-tbody" class="divide-y divide-gray-100 dark:divide-gray-700 text-sm"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab: Users Management -->
+        <div id="view-users" class="tab-content hidden">
+          <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-extrabold text-gray-900 dark:text-white">Manajemen User</h1>
+            <button onclick="window.openFormModal('user')" class="bg-indigo-500 hover:bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold shadow-md transition flex items-center transform hover:-translate-y-0.5">
+              <i class="fa-solid fa-user-plus mr-2"></i> Tambah Akun
+            </button>
+          </div>
+          <div class="bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-xs uppercase tracking-widest border-b border-gray-100 dark:border-gray-700">
+                    <th class="p-5 font-bold">Nama User</th>
+                    <th class="p-5 font-bold">Username / Email</th>
+                    <th class="p-5 font-bold">Role Akses</th>
+                    <th class="p-5 font-bold text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="users-tbody" class="divide-y divide-gray-100 dark:divide-gray-700 text-sm"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Settings -->
+        <div id="view-settings" class="tab-content hidden">
+          <h1 class="text-3xl font-extrabold text-gray-900 dark:text-white mb-6">Pengaturan Website</h1>
+          <div class="bg-white dark:bg-gray-800 shadow-sm rounded-3xl border border-gray-100 dark:border-gray-700 p-8 max-w-5xl">
+            <form onsubmit="window.submitSettings(event)">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <!-- Kiri: Teks -->
+                <div class="space-y-5">
+                  <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200 border-b border-gray-100 dark:border-gray-700 pb-3"><i class="fa-solid fa-pen-nib text-primary-custom mr-2"></i> Teks Hero Banner</h3>
+                  <div>
+                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Judul Utama (Besar)</label>
+                    <input type="text" id="set_hero_title" class="w-full border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl p-3 focus:ring-2 focus:ring-primary-custom" required>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Sub-Judul (Deskripsi)</label>
+                    <textarea id="set_hero_subtitle" rows="3" class="w-full border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl p-3 focus:ring-2 focus:ring-primary-custom" required></textarea>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Gambar Background Banner (URL)</label>
+                    <textarea id="set_hero_images" rows="3" placeholder="Pisahkan URL dengan koma (,)" class="w-full border-2 border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl p-3 text-sm"></textarea>
+                    <span class="text-xs text-gray-500 mt-1 block">*Jika diisi >1 gambar, banner akan berganti otomatis (Slide).</span>
+                  </div>
+                </div>
+
+                <!-- Kanan: Tema -->
+                <div class="space-y-5">
+                  <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200 border-b border-gray-100 dark:border-gray-700 pb-3"><i class="fa-solid fa-palette text-primary-custom mr-2"></i> Tema Warna Web</h3>
+                  <div>
+                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Warna Utama (Teks & Ikon)</label>
+                    <div class="flex items-center gap-4 bg-gray-50 dark:bg-gray-700 p-3 rounded-xl border border-gray-200 dark:border-gray-600">
+                      <input type="color" id="set_color_primary" class="w-12 h-12 p-1 border-0 rounded cursor-pointer bg-transparent">
+                      <span class="text-sm font-medium text-gray-600 dark:text-gray-300">Pilih warna solid dominan</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Warna Tombol (Gradasi)</label>
+                    <div class="flex items-center gap-3 bg-gray-50 dark:bg-gray-700 p-3 rounded-xl border border-gray-200 dark:border-gray-600">
+                      <div class="flex flex-col items-center"><input type="color" id="set_color_grad1" class="w-10 h-10 p-0.5 rounded cursor-pointer bg-transparent"><span class="text-[10px] mt-1 text-gray-500">Kiri</span></div>
+                      <i class="fa-solid fa-arrow-right text-gray-300"></i>
+                      <div class="flex flex-col items-center"><input type="color" id="set_color_grad2" class="w-10 h-10 p-0.5 rounded cursor-pointer bg-transparent"><span class="text-[10px] mt-1 text-gray-500">Tengah</span></div>
+                      <i class="fa-solid fa-arrow-right text-gray-300"></i>
+                      <div class="flex flex-col items-center"><input type="color" id="set_color_grad3" class="w-10 h-10 p-0.5 rounded cursor-pointer bg-transparent"><span class="text-[10px] mt-1 text-gray-500">Kanan</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-10 pt-6 border-t border-gray-100 dark:border-gray-700 flex justify-end">
+                <button type="submit" class="bg-gradient-custom text-white px-10 py-3 rounded-xl font-bold transition shadow-lg hover:shadow-xl transform hover:-translate-y-1"><i class="fa-solid fa-save mr-2"></i> Simpan Pengaturan</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Tab: Change Password -->
+        <div id="view-password" class="tab-content hidden">
+          <h1 class="text-3xl font-extrabold mb-6 dark:text-white text-gray-900">Ganti Password Admin</h1>
+          <div class="bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 max-w-md">
+            <form onsubmit="window.submitChangePassword(event)">
+              <div class="mb-4">
+                <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Password Lama</label>
+                <input type="password" id="cp_old" class="w-full border border-gray-300 rounded-xl p-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+              </div>
+              <div class="mb-4">
+                <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Password Baru</label>
+                <input type="password" id="cp_new" class="w-full border border-gray-300 rounded-xl p-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+              </div>
+              <div class="mb-8">
+                <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Konfirmasi Password Baru</label>
+                <input type="password" id="cp_confirm" class="w-full border border-gray-300 rounded-xl p-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+              </div>
+              <button type="submit" class="w-full bg-gray-900 hover:bg-black dark:bg-gray-700 dark:hover:bg-gray-600 text-white py-3 rounded-xl font-bold shadow-md transition">Update Password</button>
+            </form>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <div id="modalContainer"></div>
+
+  <!-- SEMUA LOGIKA JAVASCRIPT -->
+  <script>
+    // State Global
+    var iMers = {
+      formatRp: function(num) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num || 0); },
+      properties: [],
+      articles: [],
+      users: [],
+      settings: {},
+      currentUserRole: 'Admin'
+    };
+
+    window.badgeType = function(type) {
+      var safeType = type ? String(type).toLowerCase() : '';
+      var styles = {
+        'jual': 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300',
+        'sewa': 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300',
+        'over_kredit': 'bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300',
+        'lelang': 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'
+      };
+      var labels = { 'jual': 'Dijual', 'sewa': 'Disewa', 'over_kredit': 'Over Kredit', 'lelang': 'Lelang' };
+      var activeStyle = styles[safeType] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
+      return '<span class="px-3 py-1 rounded-full text-xs font-bold ' + activeStyle + '">' + (labels[safeType] || type) + '</span>';
+    };
+
+    window.showLoading = function(show) {
+      var loader = document.getElementById('global-loader');
+      if(loader) {
+        if(show) { loader.classList.remove('hidden'); loader.style.display = 'flex'; } 
+        else { loader.classList.add('hidden'); loader.style.display = 'none'; }
+      }
+    };
+
+    window.openModal = function(id) { var el = document.getElementById(id); if(el) el.classList.remove('hidden'); };
+    window.closeModal = function(id) { var el = document.getElementById(id); if(el) el.classList.add('hidden'); };
+
+    window.applyDynamicColors = function() {
+      if(iMers.settings.color_primary) document.documentElement.style.setProperty('--color-primary', iMers.settings.color_primary);
+      if(iMers.settings.color_grad1) document.documentElement.style.setProperty('--color-grad1', iMers.settings.color_grad1);
+      if(iMers.settings.color_grad2) document.documentElement.style.setProperty('--color-grad2', iMers.settings.color_grad2);
+      if(iMers.settings.color_grad3) document.documentElement.style.setProperty('--color-grad3', iMers.settings.color_grad3);
+    };
+    
+    window.toggleTheme = function() {
+      var isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      window.updateThemeIcon();
+    };
+
+    window.updateThemeIcon = function() {
+      var icon = document.getElementById('theme-icon');
+      if(!icon) return;
+      if(document.documentElement.classList.contains('dark')) {
+        icon.classList.replace('fa-moon', 'fa-sun');
+        icon.classList.add('text-yellow-400');
+      } else {
+        icon.classList.replace('fa-sun', 'fa-moon');
+        icon.classList.remove('text-yellow-400');
+      }
+    };
+
+    window.switchTab = function(tab) {
+      document.querySelectorAll('.tab-content').forEach(function(el) { el.classList.add('hidden'); });
+      var viewEl = document.getElementById('view-' + tab);
+      if(viewEl) viewEl.classList.remove('hidden');
+      
+      document.querySelectorAll('[id^="tab-"]').forEach(function(el) { 
+        el.classList.remove('text-primary-custom', 'bg-red-50', 'dark:bg-red-900/20', 'font-bold'); 
+        el.classList.add('text-gray-600', 'dark:text-gray-300', 'font-medium'); 
+      });
+      var tabBtn = document.getElementById('tab-' + tab);
+      if(tabBtn) {
+        tabBtn.classList.add('text-primary-custom', 'bg-red-50', 'dark:bg-red-900/20', 'font-bold');
+        tabBtn.classList.remove('text-gray-600', 'dark:text-gray-300', 'font-medium');
+      }
+    };
+
+    // Role Enforcement UI
+    window.enforceRoleUI = function() {
+      const role = iMers.currentUserRole;
+      const badge = document.getElementById('badge-role');
+      if(badge) {
+        badge.innerText = role;
+        badge.classList.remove('hidden');
+      }
+
+      // Jika Agen, sembunyikan semua menu kecuali Properti & Artikel
+      if(role === 'Agent') {
+        document.getElementById('nav-group-leads').style.display = 'none';
+        document.getElementById('nav-group-admin').style.display = 'none';
+      } else if (role === 'Agency') {
+        // Jika Agency, sembunyikan Settings, tapi biarkan User Management (untuk buat Agent)
+        document.getElementById('tab-settings').style.display = 'none';
+      }
+    };
+
+    // ===============================================
+    // AUTHENTIKASI & LOGIN API
+    // ===============================================
+    window.checkAuth = function() {
+      if(sessionStorage.getItem('iMersAdminAuth') === 'true') {
+        iMers.currentUserRole = sessionStorage.getItem('iMersAdminRole') || 'Admin';
+        document.getElementById('loginOverlay').classList.add('hidden');
+        document.getElementById('app').classList.remove('hidden');
+        window.enforceRoleUI();
+        window.loadData(); 
+      } else {
+        document.getElementById('loginOverlay').classList.remove('hidden');
+        document.getElementById('app').classList.add('hidden');
+      }
+    };
+
+    window.submitLogin = function(e) { 
+      e.preventDefault(); 
+      window.showLoading(true); 
+      
+      var u = document.getElementById('loginUser').value.trim();
+      var pass = document.getElementById('loginPass').value.trim();
+
+      var onSuccess = function(res) {
+        window.showLoading(false); 
+        try {
+          var p = JSON.parse(res); 
+          if(p.status === 'success'){ 
+            sessionStorage.setItem('iMersAdminAuth', 'true'); 
+            // Simulasikan Role berdasar respon backend atau deteksi dummy:
+            let assumedRole = p.role || 'Admin';
+            if(u.toLowerCase() === 'agency') assumedRole = 'Agency';
+            if(u.toLowerCase() === 'agent') assumedRole = 'Agent';
+            
+            sessionStorage.setItem('iMersAdminRole', assumedRole);
+            window.checkAuth(); 
+          } else {
+            alert(p.message); 
+          }
+        } catch(err) { alert("Error parsing respons login."); }
+      };
+
+      var onFailure = function(err) { window.showLoading(false); alert(err.message); };
+
+      try {
+        google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFailure).login(u, pass); 
+      } catch(err) { window.showLoading(false); alert("Gagal koneksi ke server."); }
+    };
+
+    window.doLogout = function() { 
+      if(confirm('Keluar dari Dashboard?')) { 
+        sessionStorage.removeItem('iMersAdminAuth'); 
+        sessionStorage.removeItem('iMersAdminRole');
+        window.location.reload(); 
+      } 
+    };
+
+    window.submitChangePassword = function(e) { 
+      e.preventDefault(); 
+      var oldP = document.getElementById('cp_old').value;
+      var newP = document.getElementById('cp_new').value;
+      var confP = document.getElementById('cp_confirm').value;
+
+      if(newP !== confP) return alert('Konfirmasi password baru tidak cocok!'); 
+      window.showLoading(true); 
+      
+      google.script.run
+        .withSuccessHandler(function(res) { window.showLoading(false); try { alert(JSON.parse(res).message); e.target.reset(); } catch(err) {} })
+        .withFailureHandler(function(err) { window.showLoading(false); alert(err.message); })
+        .changePassword(oldP, newP); 
+    };
+
+    // ===============================================
+    // FUNGSI TARIK DATA (DIBUAT MULTI-LINE AGAR AMAN)
+    // ===============================================
+    window.loadData = function() {
+      window.showLoading(true);
+      let loadCount = 0; const reqs = 6; 
+      
+      const checkReady = function() { 
+        loadCount++; 
+        if(loadCount >= reqs) window.showLoading(false); 
+      };
+      
+      const failHandler = function(e) { 
+        console.error("Fetch Error:", e); 
+        checkReady(); 
+      };
+
+      // 1. Fetch Properties
+      google.script.run
+        .withSuccessHandler(function(res) { 
+          try { 
+            iMers.properties = JSON.parse(res).data || []; 
+            window.renderPropertiesTable(); 
+          } catch(e) { console.error(e); } 
+          checkReady(); 
+        })
+        .withFailureHandler(failHandler)
+        .getProperties();
+
+      // 2. Fetch Articles
+      google.script.run
+        .withSuccessHandler(function(res) { 
+          try { 
+            iMers.articles = JSON.parse(res).data || []; 
+            window.renderArticlesTable(); 
+          } catch(e) { console.error(e); } 
+          checkReady(); 
+        })
+        .withFailureHandler(failHandler)
+        .getArticles();
+
+      // 3. Fetch Leads
+      google.script.run
+        .withSuccessHandler(function(res) { 
+          try { 
+            window.renderTable('leads-tbody', JSON.parse(res).data || [], ['date','name','phone','message','property_id']); 
+          } catch(e) { console.error(e); } 
+          checkReady(); 
+        })
+        .withFailureHandler(failHandler)
+        .getLeads();
+
+      // 4. Fetch Surveys
+      google.script.run
+        .withSuccessHandler(function(res) { 
+          try { 
+            window.renderTable('surveys-tbody', JSON.parse(res).data || [], ['date_requested','name','phone','property_id','date']); 
+          } catch(e) { console.error(e); } 
+          checkReady(); 
+        })
+        .withFailureHandler(failHandler)
+        .getSurveys();
+
+      // 5. Fetch Settings
+      google.script.run
+        .withSuccessHandler(function(res) {
+          try {
+            var p = JSON.parse(res);
+            if(p.status === 'success' && p.data) {
+              iMers.settings = p.data;
+              document.getElementById('set_hero_title').value = p.data.hero_title || '';
+              document.getElementById('set_hero_subtitle').value = p.data.hero_subtitle || '';
+              document.getElementById('set_hero_images').value = p.data.hero_images || '';
+              document.getElementById('set_color_primary').value = p.data.color_primary || '#FF6B6B';
+              document.getElementById('set_color_grad1').value = p.data.color_grad1 || '#FF6B6B';
+              document.getElementById('set_color_grad2').value = p.data.color_grad2 || '#FF8E8E';
+              document.getElementById('set_color_grad3').value = p.data.color_grad3 || '#FFD6D6';
+              window.applyDynamicColors();
+            }
+          } catch(e) { console.error(e); }
+          checkReady();
+        })
+        .withFailureHandler(failHandler)
+        .getSettings();
+
+      // 6. Fetch Users (Jika script tidak error, canvas dummy akan timeout dgn aman via failhandler)
+      if (google.script.run.getUsers) {
+        google.script.run.withSuccessHandler(function(res) {
+          try { iMers.users = JSON.parse(res).data || []; window.renderUsersTable(); } catch(e) {} checkReady();
+        }).withFailureHandler(failHandler).getUsers();
+      } else {
+        // Fallback untuk Dummy Canvas
+        iMers.users = [
+          {id:'1', name:'Admin Utama', email:'admin', role:'Admin'},
+          {id:'2', name:'Agency Jakarta', email:'agency', role:'Agency'},
+          {id:'3', name:'Agen Budi', email:'agent', role:'Agent'}
+        ];
+        window.renderUsersTable();
+        checkReady();
+      }
+    };
+
+    window.renderTable = function(tbodyId, data, columns) {
+      var tbody = document.getElementById(tbodyId);
+      if(!tbody) return;
+      if(!data || data.length === 0) { 
+        tbody.innerHTML = '<tr><td colspan="' + columns.length + '" class="p-8 text-center text-gray-500 font-medium">Data masih kosong.</td></tr>'; 
+        return; 
+      }
+      
+      tbody.innerHTML = data.reverse().map(function(row) { 
+        var trContent = columns.map(function(col) { 
+          var val = row[col] || '-';
+          if (col.includes('date') && val !== '-') {
+            val = new Date(val).toLocaleDateString('id-ID');
+          }
+          return '<td class="p-5 align-top">' + val + '</td>'; 
+        }).join('');
+        return '<tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition border-b border-gray-50 dark:border-gray-700 last:border-0">' + trContent + '</tr>'; 
+      }).join('');
+    };
+
+    // ===============================================
+    // RENDER PROPERTY & ARTICLE TABLES
+    // ===============================================
+    window.renderPropertiesTable = function() {
+      var tbody = document.getElementById('properties-tbody');
+      if(!tbody) return;
+      if(iMers.properties.length === 0) { 
+        tbody.innerHTML = '<tr><td colspan="5" class="p-10 text-center text-gray-500 font-medium">Belum ada properti ditambahkan.</td></tr>'; 
+        return; 
+      }
+
+      tbody.innerHTML = iMers.properties.map(function(p) {
+        var img = p.images ? String(p.images).split(',')[0] : p.image; 
+        
+        var priceDisplay = p.type === 'over_kredit' 
+          ? '<span class="text-xs font-normal text-gray-500 block">DP:</span> ' + iMers.formatRp(p.dp) 
+          : iMers.formatRp(p.price);
+
+        var isAgent = iMers.currentUserRole === 'Agent';
+        var flags = isAgent ? '<span class="text-xs text-gray-400 italic">No Access</span>' : 
+          '<div class="flex flex-col gap-2 items-center text-xs text-gray-500">' +
+            '<label class="flex items-center gap-2 cursor-pointer hover:text-gray-900 dark:hover:text-white transition">Feat ' + window.renderToggle(p.id, 'is_featured', p.is_featured) + '</label>' +
+            '<label class="flex items-center gap-2 cursor-pointer hover:text-gray-900 dark:hover:text-white transition">Promo ' + window.renderToggle(p.id, 'is_promo', p.is_promo) + '</label>' +
+            '<label class="flex items-center gap-2 cursor-pointer hover:text-gray-900 dark:hover:text-white transition">Banner ' + window.renderToggle(p.id, 'is_banner', p.is_banner) + '</label>' +
+          '</div>';
+
+        var actions = 
+          '<div class="flex items-center justify-center gap-2">' +
+            '<button onclick="window.openFormModal(\'property\', \'' + p.id + '\')" class="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/60 p-2.5 rounded-lg transition" title="Edit Data">' +
+              '<i class="fa-solid fa-pen"></i>' +
+            '</button>' +
+            '<button onclick="window.delProperty(\'' + p.id + '\')" class="text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 dark:bg-red-900/30 dark:hover:bg-red-900/60 p-2.5 rounded-lg transition" title="Hapus Data">' +
+              '<i class="fa-solid fa-trash"></i>' +
+            '</button>' +
+          '</div>';
+
+        return '<tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors border-b border-gray-100 dark:border-gray-700">' +
+          '<td class="p-4">' +
+            '<div class="flex items-center gap-4">' +
+              '<img src="' + img + '" class="w-14 h-14 rounded-xl object-cover shadow-sm border border-gray-200 dark:border-gray-600" onerror="this.src=\'https://picsum.photos/100\'">' +
+              '<div>' +
+                '<span class="font-bold text-gray-900 dark:text-white block line-clamp-1 mb-1">' + p.title + '</span>' +
+                '<span class="text-xs font-medium text-gray-500 dark:text-gray-400"><i class="fa-solid fa-location-dot text-blue-500 mr-1.5"></i>' + p.city + '</span>' +
+              '</div>' +
+            '</div>' +
+          '</td>' +
+          '<td class="p-4">' + window.badgeType(p.type) + '</td>' +
+          '<td class="p-4 text-gray-800 dark:text-gray-200 font-bold">' + priceDisplay + '</td>' +
+          '<td class="p-4 text-center">' + flags + '</td>' +
+          '<td class="p-4 text-center">' + actions + '</td>' +
+        '</tr>';
+      }).join('');
+    };
+
+    window.renderToggle = function(id, flagName, currentState) {
+      const isChecked = currentState === true || currentState === 'true';
+      const color = isChecked ? 'bg-primary-custom' : 'bg-gray-300 dark:bg-gray-600';
+      const translate = isChecked ? 'translate-x-4' : 'translate-x-0';
+      return '<button onclick="window.toggleFlag(\'' + id + '\', \'' + flagName + '\', ' + !isChecked + ')" class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ' + color + ' shadow-inner"><span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition shadow-sm ' + translate + ' ml-0.5"></span></button>';
+    };
+
+    window.toggleFlag = function(id, flagName, newState) {
+      window.showLoading(true);
+      google.script.run
+        .withSuccessHandler(function(res) { 
+          try { 
+            if(JSON.parse(res).status === 'success') window.loadData(); 
+            else { window.showLoading(false); alert('Gagal update status.'); } 
+          } catch(e) { console.error(e); } 
+        })
+        .withFailureHandler(function(e) { 
+          window.showLoading(false); 
+          alert("Error: " + e.message); 
+        })
+        .togglePropertyFlag(id, flagName, newState);
+    };
+
+    window.delProperty = function(id) { 
+      if(confirm('Yakin ingin menghapus properti ini permanen?')) { 
+        window.showLoading(true); 
+        google.script.run
+          .withSuccessHandler(function() { window.loadData(); })
+          .withFailureHandler(function(e) { window.showLoading(false); alert(e.message); })
+          .deleteProperty(id); 
+      } 
+    };
+
+    // Render Articles Table
+    window.renderArticlesTable = function() {
+      var tbody = document.getElementById('articles-tbody');
+      if(!tbody) return;
+      if(iMers.articles.length === 0) { 
+        tbody.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-gray-500">Belum ada artikel.</td></tr>'; 
+        return; 
+      }
+      
+      tbody.innerHTML = iMers.articles.map(function(a) { 
+        var dateVal = new Date(a.date).toLocaleDateString('id-ID');
+        return '<tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors border-b border-gray-100 dark:border-gray-700">' +
+          '<td class="p-4 font-medium text-gray-600 dark:text-gray-400">' + dateVal + '</td>' +
+          '<td class="p-4"><span class="bg-teal-50 dark:bg-teal-900/30 border border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-400 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">' + a.category + '</span></td>' +
+          '<td class="p-4 font-bold text-gray-900 dark:text-white text-base">' + a.title + '</td>' +
+          '<td class="p-4 text-center">' +
+            '<button onclick="window.openFormModal(\'article\', \'' + a.id + '\')" class="text-blue-600 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 p-2.5 rounded-lg mr-1 transition"><i class="fa-solid fa-pen"></i></button>' +
+            '<button onclick="window.delArticle(\'' + a.id + '\')" class="text-red-600 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 p-2.5 rounded-lg transition"><i class="fa-solid fa-trash"></i></button>' +
+          '</td>' +
+        '</tr>'; 
+      }).join('');
+    };
+    
+    window.delArticle = function(id) { 
+      if(confirm('Hapus artikel ini?')) { 
+        window.showLoading(true); 
+        google.script.run
+          .withSuccessHandler(function() { window.loadData(); })
+          .withFailureHandler(function(e) { window.showLoading(false); alert(e.message); })
+          .deleteArticle(id); 
+      } 
+    };
+
+    window.renderUsersTable = function() {
+      var tbody = document.getElementById('users-tbody');
+      if(!tbody) return;
+      if(iMers.users.length === 0) { 
+        tbody.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-gray-500">Belum ada data user.</td></tr>'; 
+        return; 
+      }
+      tbody.innerHTML = iMers.users.map(function(u) { 
+        return '<tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors border-b border-gray-100 dark:border-gray-700">' +
+          '<td class="p-4 font-bold text-gray-900 dark:text-white">' + u.name + '</td>' +
+          '<td class="p-4 text-gray-600 dark:text-gray-400">' + u.email + '</td>' +
+          '<td class="p-4"><span class="bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-400 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">' + u.role + '</span></td>' +
+          '<td class="p-4 text-center">' +
+            '<button onclick="window.delUser(\'' + u.id + '\')" class="text-red-600 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 p-2.5 rounded-lg transition"><i class="fa-solid fa-trash"></i></button>' +
+          '</td>' +
+        '</tr>'; 
+      }).join('');
+    };
+
+    window.delUser = function(id) { 
+      if(confirm('Hapus User ini permanen?')) { 
+        window.showLoading(true); 
+        google.script.run.withSuccessHandler(function() { window.loadData(); }).deleteUser(id); 
+      } 
+    };
+
+    // ===============================================
+    // MODAL FORM TAMBAH/EDIT
+    // ===============================================
+    
+    // Switch Input Gambar (Aman dari null)
+    window.toggleImageInput = function(type) {
+      const urlContainer = document.getElementById('img_url_container');
+      const uploadContainer = document.getElementById('img_upload_container');
+      
+      if(urlContainer && uploadContainer) {
+        if(type === 'url') {
+          urlContainer.classList.remove('hidden');
+          uploadContainer.classList.add('hidden');
+        } else {
+          urlContainer.classList.add('hidden');
+          uploadContainer.classList.remove('hidden');
+        }
+      }
+    };
+
+    // Convert Uploaded Image to Base64
+    window.handleImageUpload = function(e) {
+      const file = e.target.files[0];
+      if(!file) return;
+      if (file.size > 2 * 1024 * 1024) {
+        alert("Ukuran gambar maksimal 2MB!");
+        e.target.value = '';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        document.getElementById('ap_images').value = evt.target.result;
+      };
+      reader.readAsDataURL(file);
+    };
+
+    // FUNGSI UNTUK MEMUNCULKAN ATAU MENYEMBUNYIKAN FIELD OVER KREDIT
+    window.toggleOverKreditFields = function() {
+      const apType = document.getElementById('ap_type');
+      if(!apType) return;
+      const isOK = apType.value === 'over_kredit';
+      document.querySelectorAll('.ok-field').forEach(function(el) {
+        if (isOK) {
+          el.classList.remove('hidden');
+        } else {
+          el.classList.add('hidden');
+        }
+      });
+    };
+
+    // Render Field Jumlah Kamar Sesuai Lantai
+    window.renderFloorDetails = function() {
+      const floors = parseInt(document.getElementById('ap_floors').value) || 1;
+      const container = document.getElementById('floor_details_container');
+      if (floors >= 2) {
+          let html = '<div class="bg-gray-100 dark:bg-gray-700/50 p-4 rounded-xl border border-gray-200 dark:border-gray-600 w-full mt-4"><h4 class="font-bold text-gray-700 dark:text-gray-300 mb-3 text-sm"><i class="fa-solid fa-stairs text-primary-custom mr-2"></i> Rincian Kamar Per Lantai</h4><div class="grid grid-cols-2 md:grid-cols-4 gap-4">';
+          
+          let existingData = {};
+          try {
+             let raw = document.getElementById('ap_floor_details_data').value;
+             if(raw) existingData = JSON.parse(raw);
+          }catch(e){}
+
+          for(let i=1; i<=floors; i++) {
+              let val = existingData['lantai_'+i] || '';
+              html += '<div><label class="block text-xs mb-1 font-semibold text-gray-600 dark:text-gray-400">Kamar di Lantai ' + i + '</label><input type="number" id="ap_floor_' + i + '_rooms" value="' + val + '" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-custom" placeholder="Contoh: 2"></div>';
+          }
+          html += '</div></div>';
+          container.innerHTML = html;
+      } else {
+          container.innerHTML = '';
+      }
+    };
+
+    window.openFormModal = function(type, id = null) {
+      if (type === 'property') {
+        const isEdit = id !== null;
+        let p = isEdit ? iMers.properties.find(x => x.id === id) : {};
+        if(!p) p = {};
+        
+        const title = isEdit 
+          ? '<i class="fa-solid fa-pen text-primary-custom mr-2"></i> Edit Properti' 
+          : '<i class="fa-solid fa-plus text-primary-custom mr-2"></i> Tambah Properti Baru';
+        
+        const isFeaturedChecked = p.is_featured === true || p.is_featured === 'true' ? 'checked' : '';
+        const floorDataStr = p.floor_details || '{}';
+
+        const isAgentRole = iMers.currentUserRole === 'Agent';
+        const adminFlagsSection = isAgentRole ? '' : 
+          '<div class="col-span-1 md:col-span-2 flex items-center bg-blue-50 dark:bg-gray-700 p-4 rounded-xl border border-blue-100 dark:border-gray-600 mt-2">' +
+            '<input type="checkbox" id="ap_is_featured" class="w-6 h-6 text-primary bg-white border-gray-300 rounded focus:ring-primary dark:bg-gray-600" ' + isFeaturedChecked + '>' +
+            '<label for="ap_is_featured" class="ml-3 text-sm font-bold text-gray-800 dark:text-gray-200">Tampilkan di Pilihan Unggulan (Halaman Depan)</label>' +
+          '</div>';
+
+        const content = '<form id="propForm" onsubmit="window.submitProperty(event)">' +
+            '<input type="hidden" id="ap_id" value="' + (isEdit ? id : '') + '">' +
+            '<input type="hidden" id="ap_floor_details_data" value=\'' + floorDataStr + '\'>' +
+            '<div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">' +
+              
+              '<div class="md:col-span-2">' +
+                '<label class="block text-sm mb-2 font-bold text-gray-700 dark:text-gray-300">Nama Properti</label>' +
+                '<input type="text" id="ap_title" value="' + (p.title||'') + '" class="w-full border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 rounded-xl p-3 focus:ring-2 focus:ring-primary-custom text-gray-900 dark:text-white" required>' +
+              '</div>' +
+              
+              '<div>' +
+                '<label class="block text-sm mb-2 font-bold text-gray-700 dark:text-gray-300">Tipe Transaksi</label>' +
+                '<select id="ap_type" class="w-full border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 rounded-xl p-3 focus:ring-2 focus:ring-primary-custom text-gray-900 dark:text-white font-semibold" onchange="window.toggleOverKreditFields()">' +
+                  '<option value="jual" ' + (p.type==='jual'?'selected':'') + '>Dijual Umum</option>' +
+                  '<option value="sewa" ' + (p.type==='sewa'?'selected':'') + '>Disewakan</option>' +
+                  '<option value="over_kredit" ' + (p.type==='over_kredit'?'selected':'') + '>Over Kredit</option>' +
+                  '<option value="lelang" ' + (p.type==='lelang'?'selected':'') + '>Lelang Sitaan</option>' +
+                '</select>' +
+              '</div>' +
+              '<div>' +
+                '<label class="block text-sm mb-2 font-bold text-gray-700 dark:text-gray-300">Kategori Bangunan</label>' +
+                '<select id="ap_category" class="w-full border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 rounded-xl p-3 focus:ring-2 focus:ring-primary-custom text-gray-900 dark:text-white font-semibold">' +
+                  '<option value="Rumah" ' + (p.category==='Rumah'?'selected':'') + '>Rumah</option>' +
+                  '<option value="Apartemen" ' + (p.category==='Apartemen'?'selected':'') + '>Apartemen</option>' +
+                  '<option value="Villa" ' + (p.category==='Villa'?'selected':'') + '>Villa</option>' +
+                  '<option value="Tanah" ' + (p.category==='Tanah'?'selected':'') + '>Tanah</option>' +
+                  '<option value="Ruko" ' + (p.category==='Ruko'?'selected':'') + '>Ruko</option>' +
+                '</select>' +
+              '</div>' +
+
+              '<div id="field_price" class="md:col-span-2">' +
+                '<label class="block text-sm mb-2 font-bold text-gray-700 dark:text-gray-300">Harga Total (IDR)</label>' +
+                '<input type="number" id="ap_price" value="' + (p.price||'') + '" class="w-full border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 rounded-xl p-3 font-bold text-lg text-primary-custom" placeholder="Contoh: 750000000">' +
+              '</div>' +
+
+              '<div class="ok-field hidden col-span-1 md:col-span-2 bg-orange-50 dark:bg-orange-900/20 p-5 rounded-2xl border border-orange-200 dark:border-orange-800">' +
+                '<h4 class="font-bold text-orange-700 dark:text-orange-400 mb-4"><i class="fa-solid fa-coins mr-2"></i> Skema Over Kredit</h4>' +
+                '<div class="grid grid-cols-1 md:grid-cols-3 gap-5">' +
+                  '<div><label class="block text-sm mb-2 font-bold text-gray-700 dark:text-gray-300">DP Diminta (Rp)</label><input type="number" id="ap_dp" value="' + (p.dp||'') + '" class="w-full border border-gray-300 dark:border-gray-600 rounded-xl p-3 dark:bg-gray-700 dark:text-white"></div>' +
+                  '<div><label class="block text-sm mb-2 font-bold text-gray-700 dark:text-gray-300">Cicilan/Bln (Rp)</label><input type="number" id="ap_monthly" value="' + (p.monthly_installment||'') + '" class="w-full border border-gray-300 dark:border-gray-600 rounded-xl p-3 dark:bg-gray-700 dark:text-white"></div>' +
+                  '<div><label class="block text-sm mb-2 font-bold text-gray-700 dark:text-gray-300">Sisa Pokok (Rp)</label><input type="number" id="ap_debt" value="' + (p.remaining_debt||'') + '" class="w-full border border-gray-300 dark:border-gray-600 rounded-xl p-3 dark:bg-gray-700 dark:text-white"></div>' +
+                '</div>' +
+              '</div>' +
+
+              '<div>' +
+                '<label class="block text-sm mb-2 font-bold text-gray-700 dark:text-gray-300">Kota</label>' +
+                '<input type="text" id="ap_city" value="' + (p.city||'') + '" class="w-full border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 rounded-xl p-3 text-gray-900 dark:text-white" required>' +
+              '</div>' +
+              '<div>' +
+                '<label class="block text-sm mb-2 font-bold text-gray-700 dark:text-gray-300">Alamat Singkat</label>' +
+                '<input type="text" id="ap_address" value="' + (p.address||'') + '" class="w-full border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 rounded-xl p-3 text-gray-900 dark:text-white">' +
+              '</div>' +
+
+              '<div>' +
+                '<label class="block text-sm mb-2 font-bold text-gray-700 dark:text-gray-300">Luas Bangunan/Tanah (m²)</label>' +
+                '<input type="number" id="ap_sqft" value="' + (p.sqft||'') + '" class="w-full border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 rounded-xl p-3 text-gray-900 dark:text-white">' +
+              '</div>' +
+              '<div>' +
+                '<label class="block text-sm mb-2 font-bold text-gray-700 dark:text-gray-300">Daya Listrik</label>' +
+                '<input type="text" id="ap_electricity" value="' + (p.electricity||'') + '" class="w-full border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 rounded-xl p-3 text-gray-900 dark:text-white" placeholder="Contoh: 1300 Watt">' +
+              '</div>' +
+              '<div class="md:col-span-2">' +
+                '<label class="block text-sm mb-2 font-bold text-gray-700 dark:text-gray-300">Sumber Air</label>' +
+                '<input type="text" id="ap_water" value="' + (p.water||'') + '" class="w-full border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 rounded-xl p-3 text-gray-900 dark:text-white" placeholder="Contoh: PDAM / Sumur Bor">' +
+              '</div>' +
+
+              '<!-- RINCIAN KAMAR SPESIFIK -->' +
+              '<div class="md:col-span-2 bg-blue-50 dark:bg-blue-900/10 p-5 rounded-2xl border border-blue-100 dark:border-blue-800">' +
+                '<div class="flex flex-col gap-4">' +
+                  '<div class="flex items-center gap-2 mb-1">' +
+                    '<h4 class="font-extrabold text-blue-800 dark:text-blue-300"><i class="fa-solid fa-door-open mr-2"></i>Rincian Ruangan / Kamar</h4>' +
+                  '</div>' +
+                  '<div class="grid grid-cols-2 md:grid-cols-4 gap-4">' +
+                    '<div><label class="block text-xs mb-1 font-bold text-gray-700 dark:text-gray-300">K. Tidur Utama</label><input type="number" id="ap_bed_master" value="' + (p.bed_master||'') + '" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2 dark:bg-gray-700 dark:text-white"></div>' +
+                    '<div><label class="block text-xs mb-1 font-bold text-gray-700 dark:text-gray-300">K. Tidur Anak</label><input type="number" id="ap_bed_kids" value="' + (p.bed_kids||'') + '" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2 dark:bg-gray-700 dark:text-white"></div>' +
+                    '<div><label class="block text-xs mb-1 font-bold text-gray-700 dark:text-gray-300">K. Pembantu</label><input type="number" id="ap_bed_maid" value="' + (p.bed_maid||'') + '" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2 dark:bg-gray-700 dark:text-white"></div>' +
+                    '<div><label class="block text-xs mb-1 font-bold text-gray-700 dark:text-gray-300">Jml Kamar Mandi</label><input type="number" id="ap_baths" value="' + (p.baths||'') + '" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2 dark:bg-gray-700 dark:text-white"></div>' +
+                  '</div>' +
+                '</div>' +
+              '</div>' +
+              
+              '<div class="md:col-span-2">' +
+                '<label class="block text-sm mb-2 font-bold text-gray-700 dark:text-gray-300">Jumlah Lantai (Tingkat)</label>' +
+                '<input type="number" id="ap_floors" value="' + (p.floors||'1') + '" onkeyup="window.renderFloorDetails()" onchange="window.renderFloorDetails()" class="w-full md:w-1/3 border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 rounded-xl p-3 text-gray-900 dark:text-white font-bold" min="1">' +
+                '<div id="floor_details_container" class="w-full mt-2"></div>' +
+              '</div>' +
+
+              '<div class="col-span-1 md:col-span-2">' +
+                '<label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Deskripsi Lengkap Properti</label>' +
+                '<textarea id="ap_desc" rows="4" class="w-full border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 rounded-xl p-3 text-gray-900 dark:text-white">' + (p.description||'') + '</textarea>' +
+              '</div>' +
+
+              '<!-- DUAL MODE IMAGE INPUT -->' +
+              '<div class="col-span-1 md:col-span-2 bg-gray-50 dark:bg-gray-800 p-5 rounded-2xl border border-gray-200 dark:border-gray-700">' +
+                '<label class="block text-sm font-extrabold text-gray-800 dark:text-gray-200 mb-3"><i class="fa-solid fa-image text-primary-custom mr-2"></i>Foto Properti</label>' +
+                
+                '<div class="flex gap-6 mb-4">' +
+                  '<label class="flex items-center gap-2 cursor-pointer text-sm font-semibold text-gray-700 dark:text-gray-300">' +
+                    '<input type="radio" name="img_type" value="url" checked onchange="window.toggleImageInput(\'url\')" class="w-4 h-4 text-primary-custom"> Pakai Link URL' +
+                  '</label>' +
+                  '<label class="flex items-center gap-2 cursor-pointer text-sm font-semibold text-gray-700 dark:text-gray-300">' +
+                    '<input type="radio" name="img_type" value="upload" onchange="window.toggleImageInput(\'upload\')" class="w-4 h-4 text-primary-custom"> Upload Gambar' +
+                  '</label>' +
+                '</div>' +
+                
+                '<div id="img_url_container">' +
+                  '<textarea id="ap_images" rows="2" class="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-xl p-3 text-sm text-gray-900 dark:text-white" placeholder="https://link-gambar1.jpg, https://link-gambar2.jpg">' + (p.images||p.image||'') + '</textarea>' +
+                '</div>' +
+                
+                '<div id="img_upload_container" class="hidden mt-3">' +
+                  '<input type="file" id="ap_image_upload" accept="image/*" onchange="window.handleImageUpload(event)" class="w-full border border-dashed border-gray-400 dark:border-gray-500 bg-white dark:bg-gray-700 rounded-xl p-4 text-gray-900 dark:text-white cursor-pointer">' +
+                  '<p class="text-xs text-gray-500 mt-2 font-medium"><i class="fa-solid fa-circle-info mr-1"></i>Maximal ukuran file 2MB.</p>' +
+                '</div>' +
+              '</div>' +
+
+              '<!-- FLEXIBLE AGENT INFO -->' +
+              '<div class="bg-teal-50 dark:bg-teal-900/10 p-5 rounded-2xl border border-teal-100 dark:border-teal-800 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">' +
+                '<div class="md:col-span-2"><h4 class="font-bold text-teal-800 dark:text-teal-400"><i class="fa-solid fa-user-tie mr-2"></i> Kontak Agen Properti Ini</h4></div>' +
+                '<div>' +
+                  '<label class="block text-sm mb-2 font-bold text-gray-700 dark:text-gray-300">Nama Agen</label>' +
+                  '<input type="text" id="ap_agent_name" value="' + (p.agent_name||'') + '" class="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-xl p-3 text-gray-900 dark:text-white" placeholder="Contoh: Budi Santoso" required>' +
+                '</div>' +
+                '<div>' +
+                  '<label class="block text-sm mb-2 font-bold text-gray-700 dark:text-gray-300">WA Agen (Format: 628...)</label>' +
+                  '<input type="number" id="ap_agent_phone" value="' + (p.agent_phone||'') + '" class="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-xl p-3 text-gray-900 dark:text-white" placeholder="6281234567890" required>' +
+                '</div>' +
+              '</div>' +
+
+              adminFlagsSection +
+
+            '</div>' +
+            
+            '<div class="mt-8 flex justify-end gap-3 border-t dark:border-gray-700 pt-5">' +
+              '<button type="button" onclick="window.closeModal(\'formModal\')" class="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-xl font-bold transition hover:bg-gray-300">Batal</button>' +
+              '<button type="submit" class="px-8 py-3 bg-gradient-custom text-white rounded-xl hover:shadow-lg font-bold shadow-md transition flex items-center">' +
+                '<i class="fa-solid fa-save mr-2"></i> Simpan Properti' +
+              '</button>' +
+            '</div>' +
+          '</form>';
+        
+        var modalContainer = document.getElementById('modalContainer');
+        if(modalContainer) {
+          modalContainer.innerHTML = '<div id="formModal" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm overflow-y-auto w-full h-full flex justify-center py-10 px-4">' +
+              '<div class="relative bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-4xl m-auto border border-gray-100 dark:border-gray-700">' +
+                '<div class="flex justify-between items-center p-6 border-b border-gray-100 dark:border-gray-700">' +
+                  '<h3 class="text-2xl font-extrabold text-gray-900 dark:text-white">' + title + '</h3>' +
+                  '<button onclick="window.closeModal(\'formModal\')" class="text-gray-400 hover:text-red-500 bg-gray-100 dark:bg-gray-700 w-10 h-10 rounded-full flex items-center justify-center transition"><i class="fa-solid fa-xmark text-xl"></i></button>' +
+                '</div>' +
+                '<div class="p-6">' + content + '</div>' +
+              '</div>' +
+            '</div>';
+          window.openModal('formModal');
+          window.toggleOverKreditFields();
+          window.renderFloorDetails(); 
+        }
+      } else if (type === 'article') {
+        const isEdit = id !== null;
+        let a = isEdit ? iMers.articles.find(x => x.id === id) : {};
+        if(!a) a = {};
+        const title = isEdit ? '<i class="fa-solid fa-pen text-teal-500 mr-2"></i> Edit Artikel' : '<i class="fa-solid fa-plus text-teal-500 mr-2"></i> Tulis Artikel Blog';
+        
+        const content = '<form id="artForm" onsubmit="window.submitArticle(event)">' +
+            '<input type="hidden" id="aa_id" value="' + (isEdit ? id : '') + '">' +
+            '<div class="space-y-5">' +
+              '<div><label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Judul Artikel</label><input type="text" id="aa_title" value="' + (a.title||'') + '" class="w-full border border-gray-300 dark:border-gray-600 rounded-xl p-3 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500" required></div>' +
+              '<div class="grid grid-cols-2 gap-6">' +
+                '<div><label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Kategori</label><input type="text" id="aa_category" value="' + (a.category||'') + '" class="w-full border border-gray-300 dark:border-gray-600 rounded-xl p-3 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500" placeholder="Tips & Trik" required></div>' +
+                '<div><label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">URL Gambar Cover</label><input type="text" id="aa_image" value="' + (a.image||'https://picsum.photos/800/500') + '" class="w-full border border-gray-300 dark:border-gray-600 rounded-xl p-3 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500" required></div>' +
+              '</div>' +
+              '<div><label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Ringkasan Singkat (Excerpt)</label><textarea id="aa_excerpt" rows="2" class="w-full border border-gray-300 dark:border-gray-600 rounded-xl p-3 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500" required>' + (a.excerpt||'') + '</textarea></div>' +
+              '<div><label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Isi Artikel Lengkap</label><textarea id="aa_content" rows="6" class="w-full border border-gray-300 dark:border-gray-600 rounded-xl p-3 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500" required>' + (a.content||'') + '</textarea></div>' +
+            '</div>' +
+            '<div class="mt-8 flex justify-end gap-3 border-t dark:border-gray-700 pt-5">' +
+              '<button type="button" onclick="window.closeModal(\'formModal\')" class="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-xl font-bold transition hover:bg-gray-300">Batal</button>' +
+              '<button type="submit" class="px-8 py-3 bg-teal-500 text-white rounded-xl hover:bg-teal-600 font-bold shadow-md transition flex items-center"><i class="fa-solid fa-save mr-2"></i> ' + (isEdit ? 'Update Artikel' : 'Publish Artikel') + '</button>' +
+            '</div>' +
+          '</form>';
+          
+        var modalContainer = document.getElementById('modalContainer');
+        if(modalContainer) {
+          modalContainer.innerHTML = '<div id="formModal" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm overflow-y-auto w-full h-full flex justify-center py-10 px-4">' +
+              '<div class="relative bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-3xl m-auto border border-gray-100 dark:border-gray-700">' +
+                '<div class="flex justify-between items-center p-6 border-b border-gray-100 dark:border-gray-700">' +
+                  '<h3 class="text-2xl font-extrabold text-gray-900 dark:text-white">' + title + '</h3>' +
+                  '<button onclick="window.closeModal(\'formModal\')" class="text-gray-400 hover:text-red-500 bg-gray-100 dark:bg-gray-700 w-10 h-10 rounded-full flex items-center justify-center transition"><i class="fa-solid fa-xmark text-xl"></i></button>' +
+                '</div>' +
+                '<div class="p-6">' + content + '</div>' +
+              '</div>' +
+            '</div>';
+          window.openModal('formModal');
+        }
+      }
+    };
+
+    window.openUserModal = function() {
+      let roleOptions = '';
+      if(iMers.currentUserRole === 'Admin') {
+        roleOptions = '<option value="Admin">Admin Utama</option>' +
+          '<option value="Agency">Agency Properti</option>' +
+          '<option value="Agent" selected>Agen Properti</option>';
+      } else if(iMers.currentUserRole === 'Agency') {
+        roleOptions = '<option value="Agent" selected>Agen Properti</option>';
+      }
+
+      const content = '<form onsubmit="window.submitUser(event)">' +
+          '<div class="space-y-4">' +
+            '<div><label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Nama Lengkap</label>' +
+            '<input type="text" id="nu_name" class="w-full border border-gray-300 dark:border-gray-600 rounded-xl p-3 dark:bg-gray-700 text-white" required></div>' +
+            
+            '<div><label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Username / Email</label>' +
+            '<input type="text" id="nu_email" class="w-full border border-gray-300 dark:border-gray-600 rounded-xl p-3 dark:bg-gray-700 text-white" required></div>' +
+            
+            '<div><label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Hak Akses (Role)</label>' +
+            '<select id="nu_role" class="w-full border border-gray-300 dark:border-gray-600 rounded-xl p-3 dark:bg-gray-700 text-white font-bold">' + roleOptions + '</select></div>' +
+            
+            '<div><label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Password</label>' +
+            '<input type="password" id="nu_password" class="w-full border border-gray-300 dark:border-gray-600 rounded-xl p-3 dark:bg-gray-700 text-white" required></div>' +
+          '</div>' +
+          '<div class="mt-8 flex justify-end gap-3 border-t dark:border-gray-700 pt-5">' +
+            '<button type="button" onclick="window.closeModal(\'formModal\')" class="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-xl font-bold transition hover:bg-gray-300">Batal</button>' +
+            '<button type="submit" class="px-8 py-3 bg-indigo-500 text-white rounded-xl hover:bg-indigo-600 font-bold shadow-md transition flex items-center"><i class="fa-solid fa-save mr-2"></i> Buat Akun</button>' +
+          '</div>' +
+        '</form>';
+
+      var modalContainer = document.getElementById('modalContainer');
+      if(modalContainer) {
+        modalContainer.innerHTML = '<div id="formModal" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm overflow-y-auto w-full h-full flex justify-center py-10 px-4">' +
+            '<div class="relative bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-lg m-auto border border-gray-100 dark:border-gray-700">' +
+              '<div class="flex justify-between items-center p-6 border-b border-gray-100 dark:border-gray-700">' +
+                '<h3 class="text-2xl font-extrabold text-gray-900 dark:text-white"><i class="fa-solid fa-user-plus text-indigo-500 mr-2"></i> Buat Akun Baru</h3>' +
+                '<button onclick="window.closeModal(\'formModal\')" class="text-gray-400 hover:text-red-500 bg-gray-100 dark:bg-gray-700 w-10 h-10 rounded-full flex items-center justify-center transition"><i class="fa-solid fa-xmark text-xl"></i></button>' +
+              '</div>' +
+              '<div class="p-6">' + content + '</div>' +
+            '</div>' +
+          '</div>';
+        window.openModal('formModal');
+      }
+    };
+
+    window.submitUser = function(e) {
+      e.preventDefault();
+      window.showLoading(true);
+      const data = {
+        name: document.getElementById('nu_name').value,
+        email: document.getElementById('nu_email').value,
+        role: document.getElementById('nu_role').value,
+        password: document.getElementById('nu_password').value
+      };
+      
+      try {
+        google.script.run
+          .withSuccessHandler(function(res) { window.closeModal('formModal'); window.loadData(); })
+          .withFailureHandler(function(e) { window.showLoading(false); alert(e.message); })
+          .addUser(data); 
+      } catch(err) { window.showLoading(false); alert("Sistem berjalan pada Canvas. (Mock Save)"); window.closeModal('formModal'); window.loadData();}
+    };
+
+    window.submitProperty = function(e) {
+      e.preventDefault();
+      window.showLoading(true);
+      const id = document.getElementById('ap_id').value;
+
+      // Extract floor rooms JSON data
+      let floorDetails = {};
+      let floorsCount = parseInt(document.getElementById('ap_floors').value) || 1;
+      if(floorsCount >= 2) {
+         for(let i=1; i<=floorsCount; i++) {
+             let fInput = document.getElementById('ap_floor_' + i + '_rooms');
+             if(fInput && fInput.value) floorDetails['lantai_'+i] = fInput.value;
+         }
+      }
+
+      // Check Checkbox Element (Agent doesn't have it, so fallback to false)
+      let featCheck = document.getElementById('ap_is_featured');
+      let isFeat = featCheck ? featCheck.checked : false;
+
+      // Calculate total beds
+      let bM = parseInt(document.getElementById('ap_bed_master').value) || 0;
+      let bK = parseInt(document.getElementById('ap_bed_kids').value) || 0;
+      let bMaid = parseInt(document.getElementById('ap_bed_maid').value) || 0;
+      let totalBeds = bM + bK + bMaid;
+
+      const data = {
+        title: document.getElementById('ap_title').value,
+        type: document.getElementById('ap_type').value,
+        category: document.getElementById('ap_category').value,
+        price: document.getElementById('ap_price').value || 0,
+        city: document.getElementById('ap_city').value,
+        address: document.getElementById('ap_address').value,
+        dp: document.getElementById('ap_dp').value || 0,
+        monthly_installment: document.getElementById('ap_monthly').value || 0,
+        remaining_debt: document.getElementById('ap_debt').value || 0,
+        
+        beds: totalBeds || 0, 
+        bed_master: document.getElementById('ap_bed_master').value,
+        bed_kids: document.getElementById('ap_bed_kids').value,
+        bed_maid: document.getElementById('ap_bed_maid').value,
+        baths: document.getElementById('ap_baths').value,
+        floors: document.getElementById('ap_floors').value,
+        floor_details: JSON.stringify(floorDetails),
+
+        sqft: document.getElementById('ap_sqft').value,
+        water: document.getElementById('ap_water').value,
+        electricity: document.getElementById('ap_electricity').value,
+        nearby: document.getElementById('ap_nearby') ? document.getElementById('ap_nearby').value : '',
+        features: document.getElementById('ap_features') ? document.getElementById('ap_features').value : '',
+        images: document.getElementById('ap_images').value,
+        
+        agent_name: document.getElementById('ap_agent_name').value,
+        agent_phone: document.getElementById('ap_agent_phone').value,
+        description: document.getElementById('ap_desc').value,
+        is_featured: isFeat
+      };
+
+      try {
+        const handler = google.script.run
+          .withSuccessHandler(function(res) { window.closeModal('formModal'); window.loadData(); })
+          .withFailureHandler(function(e) { window.showLoading(false); alert(e.message); });
+        
+        if (id) handler.updateProperty(id, data); 
+        else handler.addProperty(data);
+      } catch(err) { window.showLoading(false); alert("Data Disimpan! (Mock Canvas)"); window.closeModal('formModal'); window.loadData();}
+    };
+
+    window.submitArticle = function(e) {
+      e.preventDefault();
+      window.showLoading(true);
+      const id = document.getElementById('aa_id').value;
+      const data = {
+        title: document.getElementById('aa_title').value,
+        category: document.getElementById('aa_category').value,
+        image: document.getElementById('aa_image').value,
+        excerpt: document.getElementById('aa_excerpt').value,
+        content: document.getElementById('aa_content').value
+      };
+      
+      try {
+        const handler = google.script.run
+          .withSuccessHandler(function(res) { window.closeModal('formModal'); window.loadData(); })
+          .withFailureHandler(function(e) { window.showLoading(false); alert(e.message); });
+          
+        if (id) handler.updateArticle(id, data); 
+        else handler.addArticle(data);
+      } catch(err) { window.showLoading(false); alert("Gagal."); }
+    };
+
+    document.addEventListener("DOMContentLoaded", function() {
+      var btnSite = document.getElementById('btn-view-site');
+      if(btnSite && SERVER_APP_URL) {
+        btnSite.href = SERVER_APP_URL + "?page=home";
+      }
+    });
+
+  </script>
+</body>
+</html>
