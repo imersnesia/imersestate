@@ -93,11 +93,11 @@
       <form onsubmit="window.submitLogin(event)">
         <div class="mb-4">
           <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Username</label>
-          <input type="text" id="loginUser" placeholder="admin" class="w-full border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-custom" required>
+          <input type="text" id="loginUser" placeholder="admin" class="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-custom" required>
         </div>
         <div class="mb-6">
           <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Password</label>
-          <input type="password" id="loginPass" placeholder="admin123" class="w-full border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-custom" required>
+          <input type="password" id="loginPass" placeholder="admin123" class="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-custom" required>
         </div>
         <button type="submit" class="w-full bg-gradient-custom text-white p-3 rounded-xl font-bold hover:shadow-lg transition transform hover:-translate-y-0.5">Masuk Dashboard</button>
       </form>
@@ -289,15 +289,15 @@
                   <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200 border-b border-gray-100 dark:border-gray-700 pb-3"><i class="fa-solid fa-pen-nib text-primary-custom mr-2"></i> Teks Hero Banner</h3>
                   <div>
                     <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Judul Utama (Besar)</label>
-                    <input type="text" id="set_hero_title" class="w-full border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl p-3 focus:ring-2 focus:ring-primary-custom" required>
+                    <input type="text" id="set_hero_title" class="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl p-3 focus:ring-2 focus:ring-primary-custom" required>
                   </div>
                   <div>
                     <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Sub-Judul (Deskripsi)</label>
-                    <textarea id="set_hero_subtitle" rows="3" class="w-full border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl p-3 focus:ring-2 focus:ring-primary-custom" required></textarea>
+                    <textarea id="set_hero_subtitle" rows="3" class="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl p-3 focus:ring-2 focus:ring-primary-custom" required></textarea>
                   </div>
                   <div>
                     <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Gambar Background Banner (URL)</label>
-                    <textarea id="set_hero_images" rows="3" placeholder="Pisahkan URL dengan koma (,)" class="w-full border-2 border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl p-3 text-sm"></textarea>
+                    <textarea id="set_hero_images" rows="3" placeholder="Pisahkan URL dengan koma (,)" class="w-full border-2 border-dashed border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl p-3 text-sm"></textarea>
                     <span class="text-xs text-gray-500 mt-1 block">*Jika diisi >1 gambar, banner akan berganti otomatis (Slide).</span>
                   </div>
                 </div>
@@ -307,14 +307,14 @@
                   <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200 border-b border-gray-100 dark:border-gray-700 pb-3"><i class="fa-solid fa-palette text-primary-custom mr-2"></i> Tema Warna Web</h3>
                   <div>
                     <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Warna Utama (Teks & Ikon)</label>
-                    <div class="flex items-center gap-4 bg-gray-50 dark:bg-gray-700 p-3 rounded-xl border border-gray-200 dark:border-gray-600">
+                    <div class="flex items-center gap-4 bg-white dark:bg-gray-700 p-3 rounded-xl border border-gray-200 dark:border-gray-600">
                       <input type="color" id="set_color_primary" class="w-12 h-12 p-1 border-0 rounded cursor-pointer bg-transparent">
                       <span class="text-sm font-medium text-gray-600 dark:text-gray-300">Pilih warna solid dominan</span>
                     </div>
                   </div>
                   <div>
                     <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Warna Tombol (Gradasi)</label>
-                    <div class="flex items-center gap-3 bg-gray-50 dark:bg-gray-700 p-3 rounded-xl border border-gray-200 dark:border-gray-600">
+                    <div class="flex items-center gap-3 bg-white dark:bg-gray-700 p-3 rounded-xl border border-gray-200 dark:border-gray-600">
                       <div class="flex flex-col items-center"><input type="color" id="set_color_grad1" class="w-10 h-10 p-0.5 rounded cursor-pointer bg-transparent"><span class="text-[10px] mt-1 text-gray-500">Kiri</span></div>
                       <i class="fa-solid fa-arrow-right text-gray-300"></i>
                       <div class="flex flex-col items-center"><input type="color" id="set_color_grad2" class="w-10 h-10 p-0.5 rounded cursor-pointer bg-transparent"><span class="text-[10px] mt-1 text-gray-500">Tengah</span></div>
@@ -339,15 +339,15 @@
             <form onsubmit="window.submitChangePassword(event)">
               <div class="mb-4">
                 <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Password Lama</label>
-                <input type="password" id="cp_old" class="w-full border border-gray-300 rounded-xl p-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+                <input type="password" id="cp_old" class="w-full border border-gray-300 rounded-xl p-3 bg-white dark:bg-gray-700 dark:border-gray-600 text-gray-900 dark:text-white" required>
               </div>
               <div class="mb-4">
                 <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Password Baru</label>
-                <input type="password" id="cp_new" class="w-full border border-gray-300 rounded-xl p-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+                <input type="password" id="cp_new" class="w-full border border-gray-300 rounded-xl p-3 bg-white dark:bg-gray-700 dark:border-gray-600 text-gray-900 dark:text-white" required>
               </div>
               <div class="mb-8">
                 <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Konfirmasi Password Baru</label>
-                <input type="password" id="cp_confirm" class="w-full border border-gray-300 rounded-xl p-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+                <input type="password" id="cp_confirm" class="w-full border border-gray-300 rounded-xl p-3 bg-white dark:bg-gray-700 dark:border-gray-600 text-gray-900 dark:text-white" required>
               </div>
               <button type="submit" class="w-full bg-gray-900 hover:bg-black dark:bg-gray-700 dark:hover:bg-gray-600 text-white py-3 rounded-xl font-bold shadow-md transition">Update Password</button>
             </form>
@@ -1287,6 +1287,11 @@
       var btnSite = document.getElementById('btn-view-site');
       if(btnSite) {
         btnSite.href = "index.html";
+      }
+      
+      // Auto check login session on load agar tidak blank
+      if(sessionStorage.getItem('iMersAdminAuth') === 'true') {
+         window.checkAuth();
       }
     });
 
