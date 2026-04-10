@@ -3,6 +3,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>iMersEstate - Temukan Properti Impian Anda</title>
   
   <!-- Tailwind & Theme Initialization -->
@@ -156,8 +157,8 @@
             
             <div class="flex-1 flex items-center bg-white dark:bg-gray-800 rounded-xl md:rounded-full px-4 py-3 border border-transparent dark:border-gray-700">
               <i class="fa-solid fa-location-dot text-blue-500 mr-3 text-lg"></i>
-              <select id="searchCity" class="w-full bg-transparent text-gray-700 dark:text-gray-300 focus:outline-none appearance-none cursor-pointer font-medium">
-                <option value="">Semua Kota</option>
+              <select id="searchCity" class="w-full bg-transparent text-gray-900 dark:text-white focus:outline-none appearance-none cursor-pointer font-medium">
+                <option value="" class="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Semua Kota</option>
               </select>
             </div>
 
@@ -334,7 +335,7 @@
             priceHtml = `
               <div class="text-sm space-y-1 mt-2">
                 <div class="flex justify-between"><span class="text-gray-500">DP:</span> <span class="font-bold text-primary-custom">${iMers.formatRp(p.dp)}</span></div>
-                <div class="flex justify-between"><span class="text-gray-500">Cicilan:</span> <span class="font-semibold text-gray-700 dark:text-gray-300">${iMers.formatRp(p.monthly_installment)}/bln</span></div>
+                <div class="flex justify-between"><span class="text-gray-500">Cicilan:</span> <span class="font-semibold text-gray-900 dark:text-white">${iMers.formatRp(p.monthly_installment)}/bln</span></div>
               </div>
             `;
           } else {
@@ -575,7 +576,7 @@
       }, 15000);
 
       try {
-        google.script.run.withSuccessHandler(function(res) {
+        window.google.script.run.withSuccessHandler(function(res) {
           try { 
             var p = JSON.parse(res); 
             if(p.status === 'success') { 
@@ -591,7 +592,7 @@
       } catch(err) { handleFetchError(err); }
 
       try {
-        google.script.run.withSuccessHandler(function(res) {
+        window.google.script.run.withSuccessHandler(function(res) {
           try { 
             var p = JSON.parse(res); 
             if(p.status === 'success') {
@@ -606,7 +607,7 @@
       } catch(err) { handleFetchError(err); }
 
       try {
-        google.script.run.withSuccessHandler(function(res) {
+        window.google.script.run.withSuccessHandler(function(res) {
           try { 
             var p = JSON.parse(res); 
             if(p.status === 'success') {
@@ -625,16 +626,7 @@
       try {
         if(iMers.settings.hero_title) {
           var ht = document.getElementById('hero-title');
-          if(ht) {
-            var text = iMers.settings.hero_title;
-            var words = text.split(' ');
-            if (words.length >= 2) {
-              var lastTwoWords = words.splice(-2).join(' ');
-              ht.innerHTML = words.join(' ') + ' <br><span class="text-primary-custom">' + lastTwoWords + '</span>';
-            } else {
-              ht.innerHTML = text;
-            }
-          }
+          if(ht) ht.innerHTML = iMers.settings.hero_title;
         }
         if(iMers.settings.hero_subtitle) {
           var hs = document.getElementById('hero-subtitle');
@@ -658,7 +650,8 @@
         
         var citySelect = document.getElementById('searchCity');
         if (citySelect) {
-           citySelect.innerHTML = '<option value="">Semua Kota</option>' + cities.map(function(c) { return '<option value="'+c+'">'+c+'</option>' }).join('');
+           var optionsHtml = cities.map(function(c) { return '<option value="'+c+'" class="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">'+c+'</option>' }).join('');
+           citySelect.innerHTML = '<option value="" class="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Semua Kota</option>' + optionsHtml;
         }
       } catch (err) {
         console.error("Hero Init Error: ", err);
