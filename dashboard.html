@@ -54,26 +54,6 @@
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-sans antialiased h-screen flex flex-col overflow-hidden transition-colors relative">
 
-  <!-- ANTI-BLANK SHIELD -->
-  <div id="fatal-error-shield" class="hidden absolute inset-0 z-[9999] bg-white p-10 flex flex-col items-center justify-center text-center">
-    <i class="fa-solid fa-triangle-exclamation text-6xl text-red-500 mb-4"></i>
-    <h2 class="text-2xl font-bold text-gray-900 mb-2">Sistem Gagal Memuat (Crash)</h2>
-    <p class="text-gray-600 mb-4">Detail Error:</p>
-    <code id="fatal-error-msg" class="bg-red-50 text-red-600 p-4 rounded-lg w-full max-w-2xl text-sm border border-red-200 text-left overflow-auto"></code>
-  </div>
-
-  <script>
-    window.onerror = function(msg, url, lineNo, columnNo, error) {
-      var shield = document.getElementById('fatal-error-shield');
-      var msgBox = document.getElementById('fatal-error-msg');
-      if(shield && msgBox) {
-        shield.classList.remove('hidden');
-        msgBox.innerHTML = "<b>Pesan:</b> " + msg + "<br><b>Baris:</b> " + lineNo + "<br><b>Kolom:</b> " + columnNo;
-      }
-      return false;
-    };
-  </script>
-
   <!-- LOADING GLOBAL -->
   <div id="global-loader" class="fixed inset-0 z-[999] bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm flex items-center justify-center hidden transition-opacity">
     <div class="flex flex-col items-center">
@@ -84,7 +64,7 @@
 
   <!-- OVERLAY LOGIN -->
   <div id="loginOverlay" class="fixed inset-0 z-[100] bg-gray-100 dark:bg-gray-900 flex items-center justify-center transition-colors">
-    <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl max-w-sm w-full border border-gray-200 dark:border-gray-700">
+    <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl max-w-sm w-full border border-gray-200 dark:border-gray-700 mx-4">
       <div class="text-center mb-6">
         <i class="fa-solid fa-house-chimney text-4xl text-primary-custom mb-3"></i>
         <h2 class="text-2xl font-extrabold text-gray-900 dark:text-white">Admin Portal</h2>
@@ -121,7 +101,7 @@
             <button onclick="window.toggleTheme()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-500 dark:text-gray-300" title="Toggle Dark Mode">
               <i id="theme-icon" class="fa-solid fa-moon text-lg"></i>
             </button>
-            <a id="btn-view-site" href="index.html" target="_blank" class="px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition text-sm font-bold text-gray-700 dark:text-gray-200">
+            <a id="btn-view-site" href="index.html" target="_blank" class="hidden md:inline-block px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition text-sm font-bold text-gray-700 dark:text-gray-200">
               <i class="fa-solid fa-arrow-up-right-from-square mr-1"></i> Buka Web
             </a>
           </div>
@@ -130,7 +110,7 @@
     </nav>
 
     <div class="flex-grow flex overflow-hidden">
-      <!-- Sidebar Menu -->
+      <!-- Sidebar Menu (Desktop) -->
       <div class="w-64 bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 hidden md:flex flex-col z-10 relative">
         <div class="p-5 border-b border-gray-100 dark:border-gray-700">
           <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Menu Navigasi</h2>
@@ -176,11 +156,11 @@
       </div>
 
       <!-- Area Konten Utama -->
-      <main class="flex-1 overflow-y-auto p-6 md:p-8 bg-gray-50 dark:bg-gray-900 transition-colors">
+      <main class="flex-1 overflow-y-auto p-4 md:p-8 bg-gray-50 dark:bg-gray-900 transition-colors pb-24 md:pb-8">
         
         <!-- Tab: Properties -->
         <div id="view-properties" class="tab-content">
-          <div class="flex justify-between items-center mb-6">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <h1 class="text-3xl font-extrabold text-gray-900 dark:text-white">Kelola Properti</h1>
             <button onclick="window.openFormModal('property')" class="bg-gradient-custom hover:opacity-90 text-white px-5 py-2.5 rounded-xl font-bold shadow-md transition flex items-center transform hover:-translate-y-0.5">
               <i class="fa-solid fa-plus mr-2"></i> Tambah Properti
@@ -188,7 +168,7 @@
           </div>
           <div class="bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
             <div class="overflow-x-auto">
-              <table class="w-full text-left border-collapse">
+              <table class="w-full text-left border-collapse min-w-[800px]">
                 <thead>
                   <tr class="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-xs uppercase tracking-widest border-b border-gray-100 dark:border-gray-700">
                     <th class="p-5 font-bold">Properti</th>
@@ -216,7 +196,7 @@
           </div>
           <div class="bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
             <div class="overflow-x-auto">
-              <table class="w-full text-left border-collapse">
+              <table class="w-full text-left border-collapse min-w-[600px]">
                 <thead>
                   <tr class="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-xs uppercase tracking-widest border-b border-gray-100 dark:border-gray-700">
                     <th class="p-5 font-bold">Tanggal</th>
@@ -235,7 +215,7 @@
         <div id="view-leads" class="tab-content hidden">
           <h1 class="text-3xl font-extrabold mb-6 dark:text-white text-gray-900">Pesan Masuk (Leads)</h1>
           <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-x-auto">
-            <table class="w-full text-left border-collapse">
+            <table class="w-full text-left border-collapse min-w-[800px]">
               <thead><tr class="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-xs uppercase border-b dark:border-gray-700"><th class="p-5">Tanggal</th><th class="p-5">Nama</th><th class="p-5">No. WA</th><th class="p-5">Pesan</th><th class="p-5">ID Properti</th></tr></thead>
               <tbody id="leads-tbody" class="divide-y divide-gray-100 dark:divide-gray-700 text-sm"></tbody>
             </table>
@@ -246,7 +226,7 @@
         <div id="view-surveys" class="tab-content hidden">
           <h1 class="text-3xl font-extrabold mb-6 dark:text-white text-gray-900">Jadwal Pengajuan Survei</h1>
           <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-x-auto">
-            <table class="w-full text-left border-collapse">
+            <table class="w-full text-left border-collapse min-w-[800px]">
               <thead><tr class="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-xs uppercase border-b dark:border-gray-700"><th class="p-5">Tgl Kunjungan</th><th class="p-5">Nama</th><th class="p-5">No. WA</th><th class="p-5">ID Properti</th><th class="p-5">Waktu Submit</th></tr></thead>
               <tbody id="surveys-tbody" class="divide-y divide-gray-100 dark:divide-gray-700 text-sm"></tbody>
             </table>
@@ -263,7 +243,7 @@
           </div>
           <div class="bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
             <div class="overflow-x-auto">
-              <table class="w-full text-left border-collapse">
+              <table class="w-full text-left border-collapse min-w-[600px]">
                 <thead>
                   <tr class="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-xs uppercase tracking-widest border-b border-gray-100 dark:border-gray-700">
                     <th class="p-5 font-bold">Nama User</th>
@@ -281,7 +261,7 @@
         <!-- Tab: Settings -->
         <div id="view-settings" class="tab-content hidden">
           <h1 class="text-3xl font-extrabold text-gray-900 dark:text-white mb-6">Pengaturan Website</h1>
-          <div class="bg-white dark:bg-gray-800 shadow-sm rounded-3xl border border-gray-100 dark:border-gray-700 p-8 max-w-5xl">
+          <div class="bg-white dark:bg-gray-800 shadow-sm rounded-3xl border border-gray-100 dark:border-gray-700 p-6 md:p-8 max-w-5xl">
             <form onsubmit="window.submitSettings(event)">
               <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
                 <!-- Kiri: Teks -->
@@ -356,6 +336,31 @@
 
       </main>
     </div>
+
+    <!-- BOTTOM NAVBAR MOBILE KHUSUS DASHBOARD ADMIN -->
+    <div id="admin-bottom-nav" class="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex justify-around items-center h-16 z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+      <button onclick="window.switchTab('properties')" class="flex flex-col items-center justify-center w-full h-full text-gray-500 hover:text-blue-500 dark:hover:text-blue-400 transition-colors">
+        <i class="fa-solid fa-building text-xl mb-1"></i>
+        <span class="text-[10px] font-bold">Properti</span>
+      </button>
+      <button onclick="window.switchTab('articles')" class="flex flex-col items-center justify-center w-full h-full text-gray-500 hover:text-teal-500 dark:hover:text-teal-400 transition-colors">
+        <i class="fa-solid fa-newspaper text-xl mb-1"></i>
+        <span class="text-[10px] font-bold">Blog</span>
+      </button>
+      <button onclick="window.switchTab('leads')" class="flex flex-col items-center justify-center w-full h-full text-gray-500 hover:text-orange-500 dark:hover:text-orange-400 transition-colors nav-admin-only">
+        <i class="fa-solid fa-envelope text-xl mb-1"></i>
+        <span class="text-[10px] font-bold">Pesan</span>
+      </button>
+      <button onclick="window.switchTab('settings')" class="flex flex-col items-center justify-center w-full h-full text-gray-500 hover:text-purple-500 dark:hover:text-purple-400 transition-colors nav-admin-only">
+        <i class="fa-solid fa-gear text-xl mb-1"></i>
+        <span class="text-[10px] font-bold">Seting</span>
+      </button>
+      <a href="index.html" class="flex flex-col items-center justify-center w-full h-full text-gray-500 hover:text-primary-custom transition-colors">
+        <i class="fa-solid fa-arrow-up-right-from-square text-xl mb-1"></i>
+        <span class="text-[10px] font-bold">Web</span>
+      </a>
+    </div>
+
   </div>
 
   <div id="modalContainer"></div>
@@ -490,6 +495,8 @@
       if(role === 'Agent') {
         document.getElementById('nav-group-leads').style.display = 'none';
         document.getElementById('nav-group-admin').style.display = 'none';
+        // Sembunyikan juga di navbar bottom mobile
+        document.querySelectorAll('.nav-admin-only').forEach(function(el) { el.style.display = 'none'; });
       } else if (role === 'Agency') {
         // Jika Agency, sembunyikan Settings, tapi biarkan User Management (untuk buat Agent)
         document.getElementById('tab-settings').style.display = 'none';
